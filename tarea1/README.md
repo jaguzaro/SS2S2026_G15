@@ -1,3 +1,53 @@
+
+
+### Descripción
+
+> El dataset contiene información relacionada con usuarios datos como identificador unico, nombre del usuario, sexo del usuario, fecha de registro del usuario, cantidad de gasto del usuario, ciudad del usuario y categoria en la compra.  El dataset es para analizar los gastos realizados por los usuarios en las diferentes ciudades donde ha visitado y en que categoria ha gastado
+
+---
+
+# 3. Objetivo
+
+El objetivo de esta práctica es realizar un proceso de limpieza y transformación de datos utilizando Python y Pandas, aplicando técnicas para mejorar la calidad, consistencia y confiabilidad de la información.
+
+Durante el proceso se realizaron las siguientes transformaciones:
+
+- Eliminación de registros duplicados.
+- Tratamiento de celdas vacías o valores faltantes.
+- Estandarización de valores y formatos.
+- Verificación de los resultados obtenidos.
+
+---
+
+# 4. Herramientas utilizadas
+
+Las herramientas y tecnologías utilizadas fueron:
+
+- **Python 3**
+- **Pandas**
+- **Matplotlib** [si aplica]
+- **Seaborn** [si aplica]
+- **Jupyter Notebook / Google Colab / VS Code**
+- **Dataset en formato CSV**
+
+---
+
+## 2. Dataset utilizado
+
+### Nombre del dataset
+
+**[dataset_sucio.csv]**
+
+### Fuente
+
+El dataset utilizado para esta práctica fue obtenido de:
+
+- **Fuente:** [Kaggle / archivo CSV proporcionado]
+- **Nombre del archivo:** `[dataset_sucio.csv]`
+- **Cantidad de registros iniciales:** [5000]
+- **Cantidad de columnas:** [7]
+
+
 # Entorno de trabajo
 
 instalar Python 3
@@ -54,99 +104,59 @@ Para trabajar con el archivo .ipynb:
 $ pip install jupyter
 
 
-
-
-
-
-
-## 1. Información general
-
-
-
 # Limpieza y Transformación de Datos
 
+## importacion y estado original
+
+![estado original](img/limpieza1.png)
+
+## Valores faltantes en el estado original
+
+![estado original](img/faltantes.png)
+
+## valores duplicados
+![estado original](img/duplicados.png)
 
 
 
+## estandarizacion genero 
+![estado original](img/estandarizacion1.png)
 
 
+## estandarizacion ciudad
+![estado original](img/estandarizacion2.png)
 
 
+## estandarizacion categoria
+![estado original](img/estandarizacion3.png)
 
-## 1. Información general
 
-| Campo | Información |
-|---|---|
-| **Nombre del proyecto** | Limpieza y Transformación de Datos |
-| **Nombre del estudiante** | [Tu nombre completo] |
-| **Curso** | [Nombre del curso] |
-| **Universidad** | [Nombre de la universidad] |
-| **Dataset utilizado** | [Nombre del dataset] |
-| **Fuente** | [Kaggle / CSV proporcionado] |
-| **Archivo principal** | [nombre_archivo.ipynb / nombre_archivo.py] |
+## estandarizacion fecha
+![estado original](img/estandarizacion4.png)
 
----
+## estandarizacion moneda
+![estado original](img/estandarizacion4.png)
 
-## 2. Dataset utilizado
 
-### Nombre del dataset
+## tratamiento de valores faltantes
+![estado original](img/val_faltantes.png)
 
-**[Nombre completo del dataset]**
+## tratamiento de valores faltantes
+![estado original](img/depurado.png)
 
-### Fuente
 
-El dataset utilizado para esta práctica fue obtenido de:
+## Gastos total por ciudad
+![estado original](img/gastos1.png)
 
-- **Fuente:** [Kaggle / archivo CSV proporcionado]
-- **Nombre del archivo:** `[nombre_dataset.csv]`
-- **Cantidad de registros iniciales:** [cantidad]
-- **Cantidad de columnas:** [cantidad]
+## Gastos total por categoria
+![estado original](img/gastos2.png)
 
-### Descripción
 
-[Escribir una breve descripción del dataset. Explicar qué tipo de información contiene y qué representa cada registro.]
+##  Interpretación de resultados
 
-Por ejemplo:
-
-> El dataset contiene información relacionada con [tema del dataset]. Cada registro representa [explicar qué representa una fila] y contiene variables relacionadas con [mencionar las principales variables].
-
----
-
-# 3. Objetivo
-
-El objetivo de esta práctica es realizar un proceso de limpieza y transformación de datos utilizando Python y Pandas, aplicando técnicas para mejorar la calidad, consistencia y confiabilidad de la información.
-
-Durante el proceso se realizaron las siguientes transformaciones:
-
-- Eliminación de registros duplicados.
-- Tratamiento de celdas vacías o valores faltantes.
-- Estandarización de valores y formatos.
-- Verificación de los resultados obtenidos.
-
----
-
-# 4. Herramientas utilizadas
-
-Las herramientas y tecnologías utilizadas fueron:
-
-- **Python 3**
-- **Pandas**
-- **Matplotlib** [si aplica]
-- **Seaborn** [si aplica]
-- **Jupyter Notebook / Google Colab / VS Code**
-- **Dataset en formato CSV**
-
----
-
-# 5. Proceso de limpieza de datos
-
-## 5.1 Carga del dataset
-
-Primero se realizó la carga del archivo CSV utilizando Pandas.
-
-```python
-import pandas as pd
-
-df = pd.read_csv("nombre_dataset.csv")
-
-df.head()
+- El dataset original se conserva mediante `df_original` y las transformaciones se realizan sobre `df`.
+- Los duplicados completos se identifican y eliminan mediante `drop_duplicates()`.
+- Los valores faltantes se cuantifican antes y después de la limpieza. El gasto se completa con la mediana y las variables categóricas con la moda.
+- Las fechas quedan en un formato uniforme y `gasto_q` queda como variable numérica en Quetzales.
+- Las columnas de texto se normalizan para evitar diferencias causadas por espacios y uso inconsistente de mayúsculas/minúsculas.
+- Las tablas pivote permiten comparar el gasto por ciudad, categoría y género, mientras que las gráficas facilitan identificar diferencias entre grupos.
