@@ -4,6 +4,24 @@
 * **Grupo:** SS2S2026_G15
 * **Entorno de Trabajo:** Windows PowerShell | Python 3.10+ | SQL Server (LocalDB)
 
+                 PROYECTO PYTHON
+                       │
+             ┌─────────┴─────────┐
+             │                   │
+           pyodbc             SQLAlchemy
+          5.3.0               2.0.52
+             │                   │
+             └─────────┬─────────┘
+                       │
+             ODBC Driver 17
+                       │
+                       ▼
+            SQL Server 2025
+             MSSQLSERVER
+                       │
+                       ▼
+                  master
+
 ---
 
 ## 1. Resumen Ejecutivo y Marco Formativo
