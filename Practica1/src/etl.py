@@ -1,6 +1,12 @@
 """
 etl.py — Proceso ETL: dataset_vuelos_crudo.csv -> VuelosDW (SQL Server)
 
+Practica 1 - ETL con Python: de dataset crudo a tabla relacional lista
+para analisis.
+
+Este script implementa las tres fases del proceso ETL descritas en el
+documento de modelado (Modelo multidimensional de vuelos):
+
   1. EXTRACCION : lee el CSV crudo de 10,000 registros / 26 columnas.
   2. TRANSFORMACION : homologa aerolineas, aeropuertos, genero,
      nacionalidad, canal de venta, precios y fechas segun las reglas
@@ -143,10 +149,10 @@ GENDER_MAP = {
 def _parse_datetime_flexible(value: str | float | None) -> pd.Timestamp | None:
     """Intenta dd/mm/yyyy HH:MM y cae a mm-dd-yyyy hh:MM AM/PM si falla,
     tal como describe el documento de modelado."""
-    if value is None or (isinstance(value, float) and pd.isna(value)):
+    if value is None or pd.isna(value):
         return pd.NaT
     text_val = str(value).strip()
-    if text_val == "" or text_val.lower() == "nan":
+    if text_val == "" or text_val.lower() in ("nan", "<na>", "none"):
         return pd.NaT
     try:
         return pd.to_datetime(text_val, format="%d/%m/%Y %H:%M")
@@ -168,10 +174,10 @@ def _date_key(ts: pd.Timestamp | None) -> int:
 def _clean_price(value: str | float | None) -> float | None:
     """930 registros traen coma decimal (p.ej. '77,60'); hay que
     reemplazarla por punto antes de convertir a numero."""
-    if value is None or (isinstance(value, float) and pd.isna(value)):
+    if value is None or pd.isna(value):
         return None
     text_val = str(value).strip()
-    if text_val == "" or text_val.lower() == "nan":
+    if text_val == "" or text_val.lower() in ("nan", "<na>", "none"):
         return None
     text_val = text_val.replace(",", ".")
     try:
@@ -184,10 +190,10 @@ def _clean_price(value: str | float | None) -> float | None:
 def _clean_numeric(value: str | float | None) -> float | None:
     """duration_min, delay_min, passenger_age: se cargan como NULL,
     nunca como cero, cuando vienen vacios."""
-    if value is None or (isinstance(value, float) and pd.isna(value)):
+    if value is None or pd.isna(value):
         return None
     text_val = str(value).strip()
-    if text_val == "" or text_val.lower() == "nan":
+    if text_val == "" or text_val.lower() in ("nan", "<na>", "none"):
         return None
     try:
         return float(text_val)
@@ -319,7 +325,7 @@ def _load_dimension_maps(engine: Engine) -> dict[str, dict[str, int]]:
 
 
 def _resolve(value, lookup: dict[str, int]) -> int:
-    if value is None or (isinstance(value, float) and pd.isna(value)):
+    if value is None or pd.isna(value):
         return UNKNOWN_SK
     key = str(value).strip().upper()
     return lookup.get(key, UNKNOWN_SK)
@@ -374,13 +380,16 @@ def build_fact_table(df: pd.DataFrame, dim_maps: dict[str, dict[str, int]]) -> p
 
 def load(fact: pd.DataFrame, engine: Engine, chunksize: int = 1000) -> None:
     log.info("CARGA: insertando %d filas en Hecho_Boleto", len(fact))
+    # No se usa method="multi": es incompatible con fast_executemany=True
+    # (configurado en get_engine) y produce el error de pyodbc
+    # "COUNT field incorrect or syntax error". fast_executemany ya agrupa
+    # las inserciones de forma eficiente sin necesidad de method="multi".
     fact.to_sql(
         "Hecho_Boleto",
         con=engine,
         if_exists="append",
         index=False,
         chunksize=chunksize,
-        method="multi",
     )
     log.info("CARGA: insercion completada")
 
