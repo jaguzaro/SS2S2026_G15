@@ -22,6 +22,22 @@
                        ▼
                   master
 
+
+
+## crear el modelo 
+crear_modelo.sql
+       │
+       ├── Crea VuelosDW si no existe
+       │
+       ├── Elimina tablas anteriores
+       │
+       ├── Crea 10 dimensiones
+       │
+       ├── Crea Hecho_Boleto
+       │
+       ├── Crea relaciones FK
+       │
+       └── Crea índices
 ---
 
 ## 1. Resumen Ejecutivo y Marco Formativo
