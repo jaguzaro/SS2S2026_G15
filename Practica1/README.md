@@ -1,8 +1,7 @@
 # Práctica 1: Proceso ETL con Python y Modelo Dimensional en SQL Server
 
-* **Curso:** Manejo e Implementación de Archivos / Inteligencia de Negocios
+* **Curso:** Seminario de Sistemas 2 
 * **Grupo:** SS2S2026_G15
-* **Rama Git:** `practica1-199817948`
 * **Entorno de Trabajo:** Windows PowerShell | Python 3.10+ | SQL Server (LocalDB)
 
 ---
