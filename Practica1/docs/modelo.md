@@ -110,8 +110,8 @@ todas sin normalizar. Se descarto el copo de nieve porque los catalogos son
 diminutos, entre tres y quince filas cada uno, y separarlos en tablas de segundo
 nivel solo agregaria uniones a cambio de un ahorro de espacio que no existe.
 
-La dimension mas grande es `Dim_Fecha`, con 1,462 filas: un calendario diario
-desde 2023 hasta 2026 mas el miembro desconocido. El rango se estiro un anio a
+La dimension mas grande es `Dim_Fecha`, con 1,463 filas: un calendario diario
+desde 2023 hasta 2026 mas los dos miembros especiales. El rango se estiro un anio a
 cada lado del periodo de las salidas porque algunas reservas se hicieron en 2023
 y conviene dejar margen. Las demas dimensiones son catalogos cortos, y
 `Hecho_Boleto` cierra con las 10,000 filas del archivo.
@@ -145,20 +145,46 @@ aeropuertos entran dos veces con nombres distintos.
 Duplicar las tablas habria sido mas facil de leer a primera vista, pero obligaria
 a mantener el mismo catalogo en dos lugares y a recordar actualizar los dos.
 
-## El miembro desconocido
+## Las dos formas de la ausencia
 
-Cada dimension incluye una fila con llave subrogada -1 y descripcion
-DESCONOCIDO, y es la pieza que sostiene la validacion de la carga.
+Un dato puede faltar por dos razones distintas y el modelo las distingue, porque
+mezclarlas produce indicadores falsos.
 
-El archivo tiene huecos en varias columnas. Hay 560 vuelos cancelados que
-logicamente no tienen hora de llegada, 209 nacionalidades vacias y 144 canales de
-venta vacios. Sin un miembro al cual mandarlos, esas filas tendrian que quedar
-con llave nula, y en cuanto se hiciera una union se perderian del resultado: los
-conteos dejarian de cuadrar contra el total del archivo sin que nada avisara.
+Una nacionalidad vacia significa que el pasajero tiene nacionalidad pero el
+archivo no la registro: el dato existe y no se conoce. Una hora de llegada vacia
+en un vuelo cancelado significa otra cosa: ese vuelo nunca aterrizo, asi que no
+hay hora que conocer. La primera es una ausencia de informacion y la segunda una
+ausencia de hecho.
 
-Con el miembro desconocido, en cambio, toda fila del hecho tiene siempre una
-llave valida, las columnas `sk_` pueden declararse `NOT NULL` y la consulta V2 se
-vuelve un reporte directo de cuanta informacion no se pudo homologar.
+Por eso las dimensiones llevan una fila con llave -1 y descripcion DESCONOCIDO, y
+`Dim_Fecha` lleva ademas una con llave -2 y descripcion NO APLICA. Los 209
+registros sin nacionalidad y los 144 sin canal de venta apuntan al primero; los
+560 vuelos cancelados apuntan al segundo en su fecha de llegada. La consulta V2
+reporta las dos columnas por separado, de modo que se ve de un vistazo cuanta
+informacion falto y cuanta simplemente no existia.
+
+Sin ninguno de los dos miembros esas filas tendrian que quedar con llave nula, y
+en cuanto se hiciera una union se perderian del resultado: los conteos dejarian
+de cuadrar contra el total del archivo sin que nada avisara. Con ellos, toda fila
+del hecho tiene siempre una llave valida y las columnas `sk_` se declaran
+`NOT NULL`.
+
+En las medidas la distincion no necesita un miembro porque no hay dimension de
+por medio, pero el criterio es el mismo. La edad se carga como NULL en los 112
+registros que la traen vacia, y no como cero, porque hay 57 pasajeros cuya edad
+si es cero y confundirlos hundiria el promedio. El retraso se carga como NULL en
+los 560 cancelados, y no como cero, porque hay 7,470 vuelos que salieron
+puntuales con retraso cero de verdad: rellenar con cero convertiria a los
+cancelados en puntuales y falsearia el indicador de puntualidad por aerolinea.
+Un NULL en `retraso_min` siempre viene acompanado del estado CANCELLED, asi que
+la ausencia de hecho sigue siendo identificable desde la tabla.
+
+Ninguna columna de texto guarda cadenas vacias. El archivo no trae valores con
+solo espacios ni literales como NULL o N/A, pero el proceso recorta los espacios
+antes de decidir, de modo que `''` y `' '` reciben el mismo trato. Lo que no hace
+es tratar como ausente un texto que diga NULL o N/A: eso seria un dato presente
+con contenido cuestionable, y convertirlo en silencio ocultaria un problema de la
+fuente en lugar de reportarlo.
 
 ## Tres decisiones menores
 
@@ -174,11 +200,14 @@ archivo mezcla cuatro monedas y sumar la columna original no significaria nada.
 La original se conserva para poder rastrear lo que realmente se le cobro al
 cliente.
 
-La duracion del vuelo es la que declara la fuente. En el archivo, la diferencia
-entre la hora de llegada y la de salida no coincide con `duration_min` en 8,887
-registros, con desviaciones de hasta media hora en ambos sentidos. Se tomo
-`duration_min` como valor autoritativo y las horas quedaron para el analisis
-temporal, no para recalcular nada. Ninguna consulta deriva la duracion restando.
+La duracion del vuelo es la que declara la fuente. Aun con las fechas ya
+desambiguadas, la diferencia entre la hora de llegada y la de salida no coincide
+exactamente con `duration_min`: sobre los registros inequivocos el error va de
+-10 a +262 minutos, con mediana de 12. No son husos horarios, porque la mediana
+del error es la misma sin importar cuantas horas separen al origen del destino.
+Se tomo `duration_min` como valor autoritativo y las horas quedaron para el
+analisis temporal. Ninguna consulta deriva la duracion restando, y esa misma
+holgura es la que sirve de banda para desambiguar las fechas.
 
 ## Lo que el ETL tiene que entregar
 
@@ -218,17 +247,27 @@ entero `AAAAMMDD` de la parte de fecha de cada columna de fecha y hora, y tambie
 
 ### Las fechas
 
-Las tres columnas de fecha y hora mezclan dos formatos. La mayoria viene como
-`dd/mm/yyyy HH:MM` y alrededor de mil quinientos registros de cada columna vienen
-como `mm-dd-yyyy hh:MM AM/PM`. Basta con intentar el primero y caer al segundo si
-falla; con esos dos se parsean los 10,000 registros sin excepcion.
+Las tres columnas de fecha y hora mezclan formatos, y el problema es mas hondo de
+lo que parece al principio. La mayoria viene como `dd/mm/yyyy HH:MM` y alrededor
+de mil quinientos registros de cada columna vienen como
+`mm-dd-yyyy hh:MM AM/PM`. Con esos dos se parsean los 10,000 registros sin
+excepcion, asi que es facil concluir que ya esta resuelto.
 
-Queda un problema mas incomodo. Hay 620 registros donde la hora de llegada
-resulta anterior o igual a la de salida, y 621 donde la reserva resulta posterior
-a la salida. En ambos casos el patron es el mismo, el dia y el mes intercambiados
-en una de las dos fechas. La consulta V5 los cuenta, de modo que si el ETL decide
-corregirlos el resultado debe ser cero, y si decide dejarlos como estan, eso
-tendria que quedar explicado en la documentacion del proceso.
+No lo esta. Entre las fechas con barras hay algunas escritas en orden `mm/dd`, y
+cuando el dia y el mes son ambos 12 o menos las dos lecturas producen una fecha
+valida. Leerlas todas como `dd/mm` deja 1,677 registros violando alguna regla
+temporal: llegadas anteriores a su salida, llegadas que no reproducen
+`duration_min`, reservas posteriores al vuelo.
+
+Ninguna de las tres fechas se puede resolver por separado. Hay salidas que solo
+se aclaran mirando la reserva y llegadas que solo se aclaran mirando la duracion.
+El ETL evalua entonces las combinaciones posibles de las tres y se queda con la
+que cumple mas reglas de negocio, prefiriendo `dd/mm` en los empates. Con eso los
+1,677 registros bajan a cero: se reinterpretan 407 salidas, 1,050 llegadas y 329
+reservas.
+
+La consulta V5 es la que verifica esto: sus cinco contadores deben quedar en cero
+despues de la carga.
 
 ## Como se ejecuta
 
@@ -255,7 +294,8 @@ forma mas rapida de descartar que un resultado raro venga de una carga anterior.
 
 Las cinco primeras validan la carga. V1 compara el conteo cargado contra los
 10,000 registros del archivo y verifica que no haya duplicados. V2 reporta
-cuantas filas quedaron en el miembro desconocido de cada dimension. V3 confirma
+cuantas filas quedaron en el miembro desconocido y cuantas en el de no aplica,
+en cada dimension. V3 confirma
 que los vuelos cancelados no tengan llegada, duracion ni retraso, y que los que
 si operaron tengan duracion. V4 muestra los rangos de fechas, edades, precios y
 duraciones para detectar valores fuera de dominio. V5 revisa reglas de negocio
