@@ -12,22 +12,51 @@ SELECT
 FROM dbo.Hecho_Boleto;
 GO
 
--- V2. Registros asignados al miembro desconocido en cada dimension
-SELECT 'Fecha de salida'  AS dimension, SUM(CASE WHEN sk_fecha_salida       = -1 THEN 1 ELSE 0 END) AS desconocidos FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Fecha de llegada',    SUM(CASE WHEN sk_fecha_llegada      = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Fecha de reserva',    SUM(CASE WHEN sk_fecha_reserva      = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Aerolinea',           SUM(CASE WHEN sk_aerolinea          = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Aeropuerto origen',   SUM(CASE WHEN sk_aeropuerto_origen  = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Aeropuerto destino',  SUM(CASE WHEN sk_aeropuerto_destino = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Aeronave',            SUM(CASE WHEN sk_aeronave           = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Clase de cabina',     SUM(CASE WHEN sk_clase_cabina       = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Estado del vuelo',    SUM(CASE WHEN sk_estado_vuelo       = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Canal de venta',      SUM(CASE WHEN sk_canal_venta        = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Metodo de pago',      SUM(CASE WHEN sk_metodo_pago        = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Moneda',              SUM(CASE WHEN sk_moneda             = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Genero',              SUM(CASE WHEN sk_genero             = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-UNION ALL SELECT 'Nacionalidad',        SUM(CASE WHEN sk_nacionalidad       = -1 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
-ORDER BY desconocidos DESC;
+-- V2. Ausencias por dimension, separando lo desconocido de lo que no aplica
+SELECT 'Fecha de salida'  AS dimension,
+       SUM(CASE WHEN sk_fecha_salida = -1 THEN 1 ELSE 0 END) AS desconocidos,
+       SUM(CASE WHEN sk_fecha_salida = -2 THEN 1 ELSE 0 END) AS no_aplica
+FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Fecha de llegada',
+       SUM(CASE WHEN sk_fecha_llegada = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_fecha_llegada = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Fecha de reserva',
+       SUM(CASE WHEN sk_fecha_reserva = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_fecha_reserva = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Aerolinea',
+       SUM(CASE WHEN sk_aerolinea = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_aerolinea = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Aeropuerto origen',
+       SUM(CASE WHEN sk_aeropuerto_origen = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_aeropuerto_origen = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Aeropuerto destino',
+       SUM(CASE WHEN sk_aeropuerto_destino = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_aeropuerto_destino = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Aeronave',
+       SUM(CASE WHEN sk_aeronave = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_aeronave = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Clase de cabina',
+       SUM(CASE WHEN sk_clase_cabina = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_clase_cabina = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Estado del vuelo',
+       SUM(CASE WHEN sk_estado_vuelo = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_estado_vuelo = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Canal de venta',
+       SUM(CASE WHEN sk_canal_venta = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_canal_venta = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Metodo de pago',
+       SUM(CASE WHEN sk_metodo_pago = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_metodo_pago = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Moneda',
+       SUM(CASE WHEN sk_moneda = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_moneda = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Genero',
+       SUM(CASE WHEN sk_genero = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_genero = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+UNION ALL SELECT 'Nacionalidad',
+       SUM(CASE WHEN sk_nacionalidad = -1 THEN 1 ELSE 0 END),
+       SUM(CASE WHEN sk_nacionalidad = -2 THEN 1 ELSE 0 END) FROM dbo.Hecho_Boleto
+ORDER BY desconocidos DESC, no_aplica DESC;
 GO
 
 -- V3. Coherencia entre el estado del vuelo y las medidas de duracion y retraso

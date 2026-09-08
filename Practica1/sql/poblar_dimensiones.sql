@@ -18,7 +18,8 @@ GO
 INSERT INTO dbo.Dim_Fecha
     (sk_fecha, fecha, anio, trimestre, mes, nombre_mes, dia, dia_semana, nombre_dia, es_fin_semana)
 VALUES
-    (-1, NULL, NULL, NULL, NULL, 'DESCONOCIDO', NULL, NULL, 'DESCONOCIDO', NULL);
+    (-1, NULL, NULL, NULL, NULL, 'DESCONOCIDO', NULL, NULL, 'DESCONOCIDO', NULL),
+    (-2, NULL, NULL, NULL, NULL, 'NO APLICA',   NULL, NULL, 'NO APLICA',   NULL);
 GO
 
 WITH calendario AS (
