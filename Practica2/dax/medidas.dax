@@ -1,0 +1,123 @@
+// ============================================================
+// Practica 2 - Medidas DAX del modelo tabular
+// Base: VuelosDW (Practica 1) via las vistas de rol
+//
+// En Power BI Desktop no se importan medidas desde archivo. Cada
+// una se crea con Inicio > Nueva medida y se pega el bloque
+// completo, incluido el nombre y el signo igual.
+//
+// Crearlas en este orden: las de la seccion Base primero, porque
+// las demas las referencian.
+// ============================================================
+
+
+// ------------------------------------------------------------
+// BASE
+// ------------------------------------------------------------
+
+// Una fila del hecho es un boleto de un pasajero en un vuelo,
+// asi que contar filas cuenta boletos.
+Boletos Vendidos = COUNTROWS ( Hecho_Boleto )
+
+
+// Siempre la columna en dolares. precio_boleto mezcla USD, GTQ,
+// MXN y EUR: sumarla produce un numero sin significado.
+Ingreso Total USD = SUM ( Hecho_Boleto[precio_boleto_usd] )
+
+
+Ticket Promedio USD = DIVIDE ( [Ingreso Total USD], [Boletos Vendidos] )
+
+
+// ------------------------------------------------------------
+// OPERACION
+// ------------------------------------------------------------
+
+Boletos Puntuales =
+CALCULATE ( [Boletos Vendidos], Dim_EstadoVuelo[codigo] = "ON_TIME" )
+
+
+// El denominador son todos los boletos, cancelados incluidos.
+// Es la misma definicion que usa la consulta I4 de la Practica 1,
+// para que el tablero y la base den el mismo numero.
+% Puntualidad = DIVIDE ( [Boletos Puntuales], [Boletos Vendidos] )
+
+
+% Cancelacion =
+DIVIDE (
+    CALCULATE ( [Boletos Vendidos], Dim_EstadoVuelo[codigo] = "CANCELLED" ),
+    [Boletos Vendidos]
+)
+
+
+// AVERAGE ignora los valores en blanco, que es justo lo que hace
+// falta: los 560 cancelados tienen retraso nulo porque no aplica,
+// no porque valga cero. Nunca dividir entre COUNTROWS del hecho,
+// que incluiria esos 560 en el denominador y hundiria el promedio.
+Retraso Promedio Min =
+CALCULATE ( AVERAGE ( Hecho_Boleto[retraso_min] ), Dim_EstadoVuelo[codigo] = "DELAYED" )
+
+
+// ------------------------------------------------------------
+// KPI CON SEMAFORO
+// ------------------------------------------------------------
+
+// Umbrales tomados de la distribucion real: la puntualidad por
+// aerolinea va de 71.08% a 75.73% con un global de 72.78%. Con
+// meta en 73% y alerta en 72% quedan 5 aerolineas en verde, 3 en
+// amarillo y 4 en rojo. Umbrales mas altos dejarian a casi todas
+// en el mismo color y el semaforo no distinguiria nada.
+Meta Puntualidad = 0.73
+
+Alerta Puntualidad = 0.72
+
+
+// ------------------------------------------------------------
+// ANIO CONTRA ANIO  (opcional del enunciado)
+// ------------------------------------------------------------
+
+// No se usa SAMEPERIODLASTYEAR porque exige marcar Dim_Fecha_Salida
+// como tabla de fechas, y esa vista incluye los miembros -1
+// DESCONOCIDO y -2 NO APLICA, cuya columna fecha va en blanco.
+// Filtrar por el atributo anio consigue lo mismo sin esa marca.
+Ingreso Anio Anterior =
+VAR AnioActual = MAX ( Dim_Fecha_Salida[anio] )
+RETURN
+    CALCULATE (
+        [Ingreso Total USD],
+        REMOVEFILTERS ( Dim_Fecha_Salida[anio] ),
+        Dim_Fecha_Salida[anio] = AnioActual - 1
+    )
+
+
+% Crecimiento Ingreso =
+DIVIDE ( [Ingreso Total USD] - [Ingreso Anio Anterior], [Ingreso Anio Anterior] )
+
+
+// ------------------------------------------------------------
+// CALIDAD DE DATOS
+// ------------------------------------------------------------
+
+// Cuenta los boletos que cayeron en el miembro DESCONOCIDO de
+// nacionalidad. Sirve para mostrar en el tablero cuanta informacion
+// falto en el archivo original en lugar de disimularla.
+Boletos sin Nacionalidad =
+CALCULATE ( [Boletos Vendidos], Dim_Nacionalidad[codigo] = "ND" )
+
+
+// ============================================================
+// FORMATO
+//
+// Dan una proporcion y hay que formatearlas como porcentaje con
+// dos decimales en Herramientas de medicion:
+//     % Puntualidad, % Cancelacion, % Crecimiento Ingreso,
+//     Meta Puntualidad, Alerta Puntualidad
+//
+// Moneda con dos decimales:
+//     Ingreso Total USD, Ticket Promedio USD, Ingreso Anio Anterior
+//
+// Numero entero con separador de miles:
+//     Boletos Vendidos, Boletos Puntuales, Boletos sin Nacionalidad
+//
+// Numero decimal:
+//     Retraso Promedio Min
+// ============================================================
