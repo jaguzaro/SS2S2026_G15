@@ -212,6 +212,36 @@ ambas relaciones quedaron bien.
 
 ![Página Rutas y Destinos](capturas/9.png)
 
+
+
+
+
+
+
+
+
+Segmentacion Pasajeros perfila quién compra. Tres tablas, clase de cabina,
+genero y nacionalidad, muestran boletos e ingreso donde aplica. La tarjeta de
+Boletos sin Nacionalidad queda junto a su tabla para que el vacío de datos se
+vea en el mismo lugar donde se explica.
+
+![Página Segmentacion Pasajeros](capturas/13.png)
+
+Anio contra Anio aisla la comparacion 2024-2025 que ya se referencia en las
+medidas de crecimiento. La tabla cruza anio, boletos, ingreso, puntualidad,
+Ingreso Anio Anterior y % Crecimiento Ingreso, filtrada para excluir 2023 y
+2026, que existen en el calendario pero no tienen boletos. Un gráfico de
+columnas y una tarjeta con el -0.17 % refuerzan el mismo dato en dos formatos.
+
+![Página Anio contra Anio](capturas/14.png)
+
+
+
+
+
+
+
+
 Validacion reúne todas las medidas y desgloses que tienen un valor de
 referencia conocido. No forma parte de la presentación ejecutiva.
 
