@@ -17,11 +17,13 @@
 
 // Una fila del hecho es un boleto de un pasajero en un vuelo,
 // asi que contar filas cuenta boletos.
+
 Boletos Vendidos = COUNTROWS ( Hecho_Boleto )
 
 
 // Siempre la columna en dolares. precio_boleto mezcla USD, GTQ,
 // MXN y EUR: sumarla produce un numero sin significado.
+
 Ingreso Total USD = SUM ( Hecho_Boleto[precio_boleto_usd] )
 
 
@@ -39,6 +41,7 @@ CALCULATE ( [Boletos Vendidos], Dim_EstadoVuelo[codigo] = "ON_TIME" )
 // El denominador son todos los boletos, cancelados incluidos.
 // Es la misma definicion que usa la consulta I4 de la Practica 1,
 // para que el tablero y la base den el mismo numero.
+
 % Puntualidad = DIVIDE ( [Boletos Puntuales], [Boletos Vendidos] )
 
 
@@ -57,6 +60,9 @@ Retraso Promedio Min =
 CALCULATE ( AVERAGE ( Hecho_Boleto[retraso_min] ), Dim_EstadoVuelo[codigo] = "DELAYED" )
 
 
+
+
+
 // ------------------------------------------------------------
 // KPI CON SEMAFORO
 // ------------------------------------------------------------
@@ -70,6 +76,9 @@ Meta Puntualidad = 0.73
 
 Alerta Puntualidad = 0.72
 
+% Puntualidad = DIVIDE ( [Boletos Puntuales], [Boletos Vendidos] )
+
+
 
 // ------------------------------------------------------------
 // ANIO CONTRA ANIO  (opcional del enunciado)
@@ -81,6 +90,7 @@ Alerta Puntualidad = 0.72
 // Filtrar por el atributo anio consigue lo mismo sin esa marca.
 Ingreso Anio Anterior =
 VAR AnioActual = MAX ( Dim_Fecha_Salida[anio] )
+
 RETURN
     CALCULATE (
         [Ingreso Total USD],
