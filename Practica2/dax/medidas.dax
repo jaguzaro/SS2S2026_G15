@@ -76,8 +76,23 @@ Meta Puntualidad = 0.73
 
 Alerta Puntualidad = 0.72
 
-% Puntualidad = DIVIDE ( [Boletos Puntuales], [Boletos Vendidos] )
 
+// Icono para la tabla de aerolineas. Lee los umbrales de las dos
+// medidas anteriores para que la meta viva en un solo lugar; el visual
+// KPI y el formato condicional del grafico de barras usan los mismos.
+// Si no hay boletos en el contexto devuelve blanco y no rojo.
+Semaforo =
+VAR PuntualidadActual = [% Puntualidad]
+RETURN
+    IF (
+        NOT ISBLANK ( PuntualidadActual ),
+        SWITCH (
+            TRUE (),
+            PuntualidadActual >= [Meta Puntualidad], "🟢",
+            PuntualidadActual >= [Alerta Puntualidad], "🟡",
+            "🔴"
+        )
+    )
 
 
 // ------------------------------------------------------------
@@ -88,14 +103,23 @@ Alerta Puntualidad = 0.72
 // como tabla de fechas, y esa vista incluye los miembros -1
 // DESCONOCIDO y -2 NO APLICA, cuya columna fecha va en blanco.
 // Filtrar por el atributo anio consigue lo mismo sin esa marca.
+//
+// Dos guardas. SELECTEDVALUE en lugar de MAX: si no hay un solo anio
+// en el contexto (la fila de total, o un visual por otra fecha) la
+// medida queda en blanco en vez de comparar contra el ultimo anio del
+// calendario. Y se exige que el anio actual tenga ventas: el calendario
+// llega hasta 2026, y sin esa condicion 2026 mostraria el ingreso de
+// 2025 como "anio anterior" y un crecimiento de -100 %.
 Ingreso Anio Anterior =
-VAR AnioActual = MAX ( Dim_Fecha_Salida[anio] )
-
+VAR AnioActual = SELECTEDVALUE ( Dim_Fecha_Salida[anio] )
 RETURN
-    CALCULATE (
-        [Ingreso Total USD],
-        REMOVEFILTERS ( Dim_Fecha_Salida[anio] ),
-        Dim_Fecha_Salida[anio] = AnioActual - 1
+    IF (
+        NOT ISBLANK ( AnioActual ) && NOT ISBLANK ( [Ingreso Total USD] ),
+        CALCULATE (
+            [Ingreso Total USD],
+            REMOVEFILTERS ( Dim_Fecha_Salida[anio] ),
+            Dim_Fecha_Salida[anio] = AnioActual - 1
+        )
     )
 
 
@@ -121,6 +145,9 @@ CALCULATE ( [Boletos Vendidos], Dim_Nacionalidad[codigo] = "ND" )
 // dos decimales en Herramientas de medicion:
 //     % Puntualidad, % Cancelacion, % Crecimiento Ingreso,
 //     Meta Puntualidad, Alerta Puntualidad
+//
+// Texto (sin formato numerico):
+//     Semaforo
 //
 // Moneda con dos decimales:
 //     Ingreso Total USD, Ticket Promedio USD, Ingreso Anio Anterior

@@ -23,7 +23,7 @@ Falta el archivo `.pbix`, las capturas y el informe tecnico.
 
 ## Orden de trabajo
 
-### 1. Reconstruir la base
+### 1. Reconstruir la base desde la practica 1
 
 Desde `Practica1`, con SQL Server corriendo. Los detalles de entorno y las
 variables de conexion estan en `Practica1/README.md`.
